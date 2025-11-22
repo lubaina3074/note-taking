@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+
+<%- include('base', {
+    title: 'Note Content',
+  });
+%>
+
+<body>
+    
+    <div class="note-content">
+        <pre class="content-display"><%= content %></pre>
+    </div>
+
+
+    <button id="editBtn">Edit Note</button>
+    <button id="backBtn" onclick="location.href='/notes/upload'">Back to Uploads</button>
+
+
+</body>
+
+<script>
+    document.getElementById('editBtn').onclick = function() {
+        location.href = '/notes/edit/<%=fileId%>';
+    }
+</script>
+
+</html>

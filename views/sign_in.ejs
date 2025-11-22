@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+
+
+<html>
+
+<head>
+
+    <meta charset="UTF-8">
+    <title>NoteTaker</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="description" content="Description">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="images/image.png">
+</head>
+
+
+<body>
+    <form action="/api/users" method = "POST">
+        <div class="sign-in">
+            <h1>Sign up</h1>
+            <p> Please enter the following details to create your account</p>
+
+                <label for="email"> <b> Email </b> </label>
+                <input type="text" placeholder="Enter your Email: " name="email" required>
+                <label for="name"> <b> Name </b></label>
+                <input type="text" placeholder="Enter your Name: " name="name" required>
+                <label for="psw"> <b> Password </b> </label>
+                <input type="password" placeholder="Enter your password: " name="psw" required>
+                <label for="psw-repeat"> <b> Password </b> </label>
+                <input type="password" placeholder="Confirm your password: " name="pswRepeat" required>
+
+            <div class="clearfix">
+                <button type="button" class="cancelbtn" onclick="window.location.href='/home'">Go back</button>
+                <button type="submit" class="signupbtn">Sign Up</button>
+            </div>
+        </div>
+
+    </form>
+
+    <div class="bg"></div>
+    <div class="bg bg2"></div>
+    <div class="bg bg3"></div>
+
+
+</body>
+
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>NoteTaker</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="description" content="Description" />
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="icon" type="image/png" href="images/image.png" />
+
+</head>
+
+<body>  
+   <header class="topnav">
+    <div class="top-row">
+
+        <button id="navToggle" class="hamburger">
+            <div class="bar1"></div>
+            <div class="bar2"></div>
+            <div class="bar3"></div>
+        </button>
+        
+        <div class="titles-container">
+            <h1> <%- title %> </h1> 
+        
+        </div>
+        
+        </div>
+</header>
+
+    <aside id="sidebar">
+        <nav class="side-nav"> 
+            <ul>
+                <li>
+                    <img src="/images/home.png" alt="home-img" class="nav-icon">
+                    <a href="/home">Home</a>
+                </li>
+                <li>
+                    <img src="/images/sticky-note.png" alt="notepng" class="nav-icon" >
+                    <a href="/notes/upload">Uploaded notes</a>  
+                </li>
+                <li>
+                    <img src="/images/favorite.png" alt="favorite-png" class="nav-icon" >
+                    <a href="/favorites" > Favorites </a>         
+                </li>
+
+            <nav class="bottom-nav">
+            <ul>
+                <li>
+                    <img src="/images/logout.png" alt="logout-png" class="nav-icon" >
+                    <a href="/logout">Logout</a>
+                </li>
+                <li>
+                    <img src="/images/settings.png" alt="settings-png" class="nav-icon" >
+                    <a href='/settings'> Settings </a>
+                </li>
+            </ul>
+            </ul>
+        </nav>
+        </nav>
+    </aside>
+
+    <main id="main-content">
+        </main>
+
+
+    <div class="bg"></div>
+    <div class="bg bg2"></div>
+    <div class="bg bg3"></div>
+</body>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleButton = document.getElementById('navToggle'); 
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        
+        toggleButton.addEventListener('click', function() {
+            sidebar.classList.toggle('open');
+            mainContent.classList.toggle('pushed');
+        });
+    });
+</script>
+
+</html>

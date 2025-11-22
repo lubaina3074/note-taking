@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<%- include ('base', {
+    title: 'Edit Note',
+  });
+%> 
+<body>
+
+<form method="POST" action="/notes/edit/<%= file._id %>">
+    
+   <div class="file-header"> 
+    <div class="file-info-group"> 
+        <h3> <%= filename %> </h3>
+        <div id="saveStatus" style="font-size: 0.8em; color: grey;">Status: Loaded</div>
+    </div>
+    
+    <a id="dnld-image" href="#"> 
+        <img src="/images/download.png" title="Download file: <%= filename %>" alt="download" class="dnld-img" /> 
+    </a>
+</div>
+
+        <div>
+        <textarea name="content" id="noteContent" class="note-editor"><%= content %></textarea>
+        </div>
+    
+        <div class = "buttons">
+            <div class = "leftbuttons" >
+            <button type="button" id="saveBtn" class="save-btn" title="Save button">Save</button>
+            <button id ="grammar-btn" type="button" class="grammar-btn" title="Grammar button">Check Grammar</button>
+            <button id ="favorite-btn" type="button" class="favorite-btn" title="favorite-button">Favorite</button>
+            </div>
+            <button type="button" id="backBtn" onclick="location.href='/notes/upload'">Back to Uploads</button>
+        </div>
+
+</form>
+
+</body>
+
+<script>
+
+    const noteContent = document.getElementById('noteContent');
+    const saveStatus = document.getElementById('saveStatus');
+    const fileId = '<%= file._id.toString() %>';
+    const AUTOSAVE_DELAY = 2000;
+    const uniqueId = '<%= uniqueId %>'
+
+
+    function debounce(func, delay) {
+        let timeoutId;
+        return function(...args) {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                func.apply(this, args);
+            },delay);
+        }
+    }
+
+    async function autoSave() {
+        const content = noteContent.value;
+        const apiUrl = `/notes/edit/${uniqueId}`; 
+
+        saveStatus.style.color = 'orange';
+        saveStatus.textContent = 'Status: Saving...';
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                //send the content here
+                body: JSON.stringify({content: content})
+                
+            })
+
+            const result = await response.json();
+            if(result.success) {
+                saveStatus.style.color = 'green';
+                saveStatus.textContent = 'Status: Saved!';
+            } else {
+                saveStatus.style.color = 'red';
+                saveStatus.textContent = 'Staus: Failed!';
+                console.error("Autosave failed with status:", response.status);
+            }
+        } catch (error) {
+            saveStatus.style.color = 'red';
+            saveStatus.textContent = 'Status: Network Error.';
+            console.error("Autosave network error:", error);
+        }
+
+    }
+
+    const debouncedAutoSave = debounce(autoSave, AUTOSAVE_DELAY);
+    noteContent.addEventListener('input', () => {
+        saveStatus.color = 'blue';
+        saveStatus.textContent = 'Status: Typing...';
+        debouncedAutoSave();
+    });
+
+    document.getElementById('dnld-image').onclick = function() {
+        location.href = '/notes/download/<%= uniqueId %>'
+    }
+
+     document.getElementById('grammar-btn').onclick = function() {
+        location.href = '/notes/grammar-check/<%= uniqueId %>'
+    }
+
+    document.getElementById('saveBtn').onclick = function(e) {
+        e.preventDefault();
+        debouncedAutoSave();
+    }
+ </script>
+
+
+</html>
+

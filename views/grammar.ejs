@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<%- include('base', {
+    title: "Grammar check Results!"
+})
+%>
+
+<body>
+
+
+<h2 style="text-align:center">Original Note:</h2>
+    <div>
+        <textarea name="content" id="noteContent" class="note-editor"><%= content %></textarea>
+    </div>
+
+<h2 style="text-align:center; color:white;">Detected Issues:</h2>
+
+<div class="grammar-issues">
+<% if (!mistakes || mistakes.length === 0) { %>
+    <p>No grammar issues detected!</p>
+<% } else { %>
+    <ul>
+        <% mistakes.forEach(issue => { %>
+            <li>
+                <strong>Issue:</strong> <%= issue.message %> <br>
+                <strong>Text:</strong> "<%= content.substring(issue.offset, issue.offset + issue.length) %>" <br>
+                <strong>Suggestions:</strong> 
+                <% if (issue.replacements && issue.replacements.length > 0) { %>
+                    <%= issue.replacements.map(r => r.value).join(", ") %>
+                <% } else { %>
+                    None
+                <% } %>
+            </li>
+        <% }) %>
+    </ul>
+<% } %>
+</div>
+
+<button style="display: block; margin: 25px auto" id="backBtn" onclick="location.href='/notes/upload'">Back to Uploads</button>
+</body>
+
+
+</html>

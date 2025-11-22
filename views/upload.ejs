@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<%- include('base', { title: 'All your notes' , }); %>
+
+  <body>
+    <h2 style="color: white">Upload in md format!</h2>
+
+    <form action="/notes/upload" enctype="multipart/form-data" method="post">
+      <div class="form-group">
+        <input type="file" class="form-control-file" name="myFile" />
+        <input type="submit" value="Submit" class="btn btn-default" />
+      </div>
+    </form>
+
+    <button type="button" id="folderBtn">Create new Folder</button>
+
+    <button style="display: none" id="Addbtn">Add to Folder</button>
+
+
+    <div class="file-list">
+
+      <!-- Folders Section -->
+      <ul class="folder-list">
+        <% if (folderArray && folderArray.length> 0) { %>
+          <% folderArray.forEach(function(folder) { %>
+            <li class="folder-item">
+              <img src="/images/folder.png" class="folder-img" id="folderImg" />
+              <p class="folder-name">
+                <%= folder.name %>
+              </p>
+            </li>
+            <% }) %>
+              <% } else { %>
+                <li>No folders created yet.</li>
+                <% } %>
+      </ul>
+
+      <!-- Files section -->
+      <ul>
+        <% if (fileArray && fileArray.length> 0) { %>
+          <% fileArray.forEach(function(file) { %>
+            <% if (file) { %>
+              <% const fileIdString=file._id.toString(); %>
+                <% const uniqueId=file.metadata.uniqueId; %>
+                  <li id="file-<%= file._id %>">
+                    <div class="file-item" id="file-<%= file._id %>" draggable="true"
+                      ondragstart="dragstartHandler(event)">
+                      <strong>
+                        <%= file.originalname %>
+                      </strong>
+                      <a id="file-link-<%= fileIdString %>" href="#" class="file-double-click-trigger"
+                        data-unique-id="<%= uniqueId %>">
+                        <img src="images/file.png" alt="file" class="file-img" />
+                      </a>
+                      <%= file.filename %>
+                    </div>
+                  </li>
+
+                  <% } %>
+                    <% }); %>
+                      <% } else { %>
+                        <li>No files uploaded yet.</li>
+                        <% } %>
+      </ul>
+  </body>
+
+  <script>
+   document.getElementById("folderBtn").onclick = async () => {
+      const folderName = prompt("Enter folder name");
+      if (!folderName) return;
+
+      const response = await fetch("/notes/create-folder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: folderName }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        alert("Folder created!");
+        window.location.reload();
+      }
+    };
+  </script>
+
+</html>

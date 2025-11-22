@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <%- include('base', { title: 'NoteTaker' , }); %>
+
+  <body>
+    <h2 class="center-wrapper">
+      <span class="Welcomemsg" id="Welcometxt">
+        Welcome <%= (user && user.name) ? user.name : 'Guest' %>
+      </span>
+    </h2>
+
+    <div class="nav-right">
+      <li class="profile-dropdown">
+        <a href="#">
+          <img src="images/profile.png" alt="profile" class="profile-img" />
+          <span class="dropdown-arrow">▲</span>
+        </a>
+        <ul class="dropdown-menu">
+          <% if (user) { %>
+          <li><a href="/logout">Logout</a></li>
+          <% } else { %>
+          <li><a href="/sign-in">Sign up</a></li>
+          <li><a href="/login">Log in</a></li>
+          <% } %>
+        </ul>
+      </li>
+    </div>
+
+    <!-- <% if (user) {%>
+            <form action="/notes/upload" method="GET">
+                <button class="notes-upload-btn"> Upload your notes here</button>
+            </form>
+            <% } %> -->
+  </body>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        
+     
+        const textElement = document.getElementById("Welcometxt");
+        if (!textElement) return; 
+
+        const fullText = textElement.innerText;
+        
+
+        let i = 0;
+        let speed = 100; 
+
+
+        textElement.innerHTML = ''; 
+
+
+        function typeWriter() {
+            if (i < fullText.length) {
+                textElement.innerHTML += fullText.charAt(i);
+                i++;
+                // Schedule the next character to be typed
+                setTimeout(typeWriter, speed);
+            }
+        }
+        typeWriter();
+    });
+</script>
+
+</html>
