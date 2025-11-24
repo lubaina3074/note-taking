@@ -36,7 +36,7 @@ function getBucket() {
     return bucket;
 }
 
-async function uploadFile(filepath, userId) {
+async function uploadFile(filepath, userId, folderId) {
     if (!bucket) throw new Error("Database not connected yet");
     const folderIdValue = folderId || '';
     const filename = path.basename(filepath); //gets the file name from the file path

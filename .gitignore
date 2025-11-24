@@ -1,5 +1,4 @@
 node_modules/
-uploads/
 public/images/*.mp4
 .env
 dump/

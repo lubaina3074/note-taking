@@ -52,7 +52,7 @@ const fileStorage = multer.diskStorage({
 });
 
 const upload = multer({
-    fileStorage: fileStorage,
+    storage: fileStorage,
     limits: { fileSize: 1000000 }
 }).single("myFile");
 
@@ -83,7 +83,7 @@ router.get('/upload', async (req, res) => {
 
 //upload markdown files
 router.post('/upload', upload, async (req, res) => {
-
+    console.log(req.file);
     const filepath = req.file ? req.file.path : null;
 
     try {
@@ -110,7 +110,7 @@ router.post('/upload', upload, async (req, res) => {
             return res.status(409).send('File with this name already uploaded.');
         }
 
-        const fileId = await uploadFile(filepath, userId);
+        const fileId = await uploadFile(filepath, userId, folderId);
         const allFiles = await bucket.find({ userId: userId }).toArray();
         res.redirect('/notes/upload');
         console.log("File uploaded with id:", fileId.toString());
@@ -405,8 +405,31 @@ router.post('/create-folder', async(req, res) => {
     }
 });
 
-router.get('/add-file-to-folder', async (req, res) => {
+router.post('/add-file-to-folder', async (req, res) => {
+    const db = getDB();
+    const {uniqueId, folderId} = req.body;
 
-})
+    if (!uniqueId || !folderId)
+    {
+        return res.status(400).send('uniqueId and folderId are required');
+    }
+
+    try {
+        const result = await db.collection('uploads.files').updateOne(
+                {'metadata.uniqueId': uniqueId},
+                {$set: {'metadata.folderId': folderId}}
+            
+        )
+
+        if (result.matchedCount === 0) {
+            return res.status(404).send('File not found');
+        }
+        res.send({ success: true, message: 'File added to folder' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Database update failed');
+    }
+
+});
 
 module.exports = router;
