@@ -578,11 +578,28 @@ textarea:focus {
   margin-bottom: 15px;
 }
 
+.files-in-folder {
+  text-align: center;
+}
 
 .file-item .file-img {
   width: 100px;
   height: 90px;
   margin-right: 10px;
+  display: flex;
+}
+
+.file-list li{
+  list-style-type: none;
+}
+
+.files-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;        
+  gap: 20px;                  
 }
 
 .folder-item {
@@ -597,6 +614,7 @@ textarea:focus {
   width: 100px;
   height: 90px;
   margin-right: 10px;
+  display: flex;
 }
 
 .folder-list {
@@ -619,6 +637,20 @@ textarea:focus {
 .folder-list ul li {
   list-style: none;
   margin-right: 30px;
+}
+
+.folder-contents {
+  width: 50%;
+  display: flex;
+  height: 50%;
+  align-items: center;
+  margin: 30px auto 0 auto;
+  justify-content: flex-start;
+}
+
+.folder-contents li {
+  list-style-type: none;
+
 }
 
 .note-content {
@@ -689,6 +721,27 @@ textarea:focus {
   border: 1px solid #ccc;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
 }
+
+#right-menu-options {
+  position: absolute;
+  background-color: pink;
+  border: 1px solid #ccc;
+  padding: 4px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  margin-top: 10px;
+  color: white;
+}
+
+#right-menu-options li {
+  padding: 5px 8px; 
+  cursor: pointer;
+}
+
+#right-menu-options :hover{
+  display: block;
+}
+
 
 @keyframes slide {
   0% {

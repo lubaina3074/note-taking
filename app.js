@@ -46,6 +46,10 @@ app.use(session({
 
 app.use('/notes', noteRouter);
 
+app.get('/', (req, res) => {
+    res.redirect('/home')
+});
+
 app.get('/login', (req, res) => {
     res.render("login", {message: null});
 })

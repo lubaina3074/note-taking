@@ -405,6 +405,7 @@ router.post('/create-folder', async(req, res) => {
     }
 });
 
+//add files to folder
 router.post('/add-file-to-folder', async (req, res) => {
     const db = getDB();
     const {uniqueId, folderId} = req.body;
@@ -430,6 +431,15 @@ router.post('/add-file-to-folder', async (req, res) => {
         res.status(500).send('Database update failed');
     }
 
+});
+
+//show folder content
+router.get('/folder/:id', async (req, res) => {
+    const db = getDB();
+    const folderId = req.params.id;
+    const folder = await db.collection('folders').findOne({_id: folderId});
+    const fileArray = await db.collection('uploads.files').find({'metadata.folderId': folderId}).toArray();
+    res.render("folder", {fileArray: fileArray});
 });
 
 module.exports = router;

@@ -26,47 +26,52 @@
           <% folderArray.forEach(function(folder) { %>
             <li class="folder-item" data-folder-id="<%= folder._id %>">
               <img src="/images/folder.png" class="folder-img" id="folderImg" />
-              <p class="folder-name">
                 <%= folder.name %>
-              </p>
             </li>
             <% }) %>
               <% } else { %>
-                <li>No folders created yet.</li>
+
                 <% } %>
       </ul>
 
       <!-- Files section -->
-      <ul>
+
         <% if (fileArray && fileArray.length> 0) { %>
           <% fileArray.forEach(function(file) { %>
-            <% if (file) { %>
+            <% if (file && !file.metadata.folderId) { %>
               <% const fileIdString=file._id.toString(); %>
-                <% const uniqueId=file.metadata.uniqueId; %> 
-                  <li id="file-<%= file._id %>">
+                <% const uniqueId=file.metadata.uniqueId; %>
+                  <li id="file-<%= file._id %>" class="file-li">
                     <div class="file-item" id="file-<%= file._id %>" draggable="true"
                       ondragstart="dragstartHandler(event)">
-                      <strong>
-                        <%= file.originalname %>
-                      </strong>
+                     
                       <a id="file-link-<%= fileIdString %>" href="#" class="file-double-click-trigger"
                         data-unique-id="<%= uniqueId %>">
-                        <img src="images/file.png" alt="file" class="file-img" />
+                        <img src="/images/file.png" alt="file" class="file-img" />
                       </a>
                       <%= file.filename %>
                     </div>
                   </li>
 
                   <% } %>
-                    <% }); %>
-                      <% } else { %>
-                        <li>No files uploaded yet.</li>
-                        <% } %>
+                    <% }) %>
+                      <% } %>
       </ul>
   </body>
 
   <script>
-   document.getElementById("folderBtn").onclick = async () => {
+
+    function dragstartHandler(ev) {
+      const fileItem = ev.currentTarget;
+      const uniqueId = fileItem.querySelector('.file-double-click-trigger').dataset.uniqueId;
+      ev.dataTransfer.setData('text/plain', uniqueId);
+    }
+
+    function dragoverHandler(ev) {
+      ev.preventDefault();
+    }
+
+    document.getElementById("folderBtn").onclick = async () => {
       const folderName = prompt("Enter folder name");
       if (!folderName) return;
 
@@ -83,33 +88,49 @@
       }
     };
 
-   document.querySelectorAll('.file-double-click-trigger').forEach(el => {
-    el.addEventListener('dblclick', function() {
-      const uniqueId = this.dataset.uniqueId;
-      location.href = '/notes/edit/' + uniqueId;
+    document.querySelectorAll('.file-double-click-trigger').forEach(el => {
+      el.addEventListener('dblclick', function () {
+        const uniqueId = this.dataset.uniqueId;
+        location.href = '/notes/edit/' + uniqueId;
+      })
     })
-   })
 
-   document.querySelectorAll('.folder-item').forEach(folder => {
-    folder.addEventListener('dragover', e => e.preventDefault());
-    folder.addEventListener('drop', async e => {
-      e.preventDefault();
-    const fileUniqueId = e.dataTransfer.getData('text/plain');
-    const folderId = folder.dataset.folderId;
-     const response = await fetch('/notes/add-file-to-folder', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fileUniqueId, folderId })
-    });
-
-    const data = await response.json();
-    if (data.success) {
-      alert('File added to folder!');
-      window.location.reload(); // or dynamically update UI
-    }
+    document.querySelectorAll(".folder-item").forEach(el => {
+      el.addEventListener('dblclick', function () {
+        const folderId = this.dataset.folderId;
+        location.href = '/notes/folder/' + folderId;
+      })
     })
-   })
-    
+
+    document.querySelectorAll('.folder-item').forEach(folder => {
+      folder.addEventListener('dragover', e => e.preventDefault());
+      folder.addEventListener('drop', async e => {
+        e.preventDefault();
+        const fileUniqueId = e.dataTransfer.getData('text/plain');
+        const folderId = folder.dataset.folderId;
+        const response = await fetch('/notes/add-file-to-folder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uniqueId: fileUniqueId, folderId })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          alert('File added to folder!');
+          const fileElement = document.querySelector(`[data-unique-id="${fileUniqueId}"]`
+          ).closest('.file-item');
+          if (fileElement)
+          {
+            fileElement.remove();
+          } else {
+            alert('Failed to add file to folder.');
+          }
+        }
+      })
+    })
+
+
+
   </script>
 
 </html>

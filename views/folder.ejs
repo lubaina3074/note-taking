@@ -1,2 +1,76 @@
+<!DOCTYPE html>
 
+<html>
+<%- include('base', { title: "Folder contents" }) %>
 
+    <body>
+        <div class="folder-contents">
+            <ul class="files-list">
+                <% if (fileArray && fileArray.length> 0) { %>
+                    <% fileArray.forEach(function (file) { %>
+                        <% const fileIdString = file._id.toString(); %>
+                        <% const uniqueId = file.metadata.uniqueId; %>
+                        <li class="files-in-folder" data-file-id="file._id">
+                            <div class="file-item" id="file-double-click-trigger">
+                                <a id="file-link-<%= fileIdString %>" href="#" class="file-double-click-trigger"
+                                    data-unique-id="<%= uniqueId %>">
+                                    <img src="/images/file.png" alt="file" class="file-img" />
+                                </a>
+                                <%= file.filename %>
+                            </div>
+                        </li>
+                        <% }) %>
+                            <% } else { %>
+                                <li style="margin-left: 240px; margin-top: 100px; font-size: 20px"> No files added in
+                                    this folder </li>
+                                <% } %>
+
+                                    <div id="right-menu-options" style="display: none">
+                                        <ul>
+                                            <li> Rename file </li>
+                                            <li> Remove From folder</li>
+                                            <li> Delete file </li>
+                                        </ul>
+                                    </div>
+
+            </ul>
+        </div>
+
+    </body>
+
+    <script>
+        let menuVisible = false;
+        document.querySelectorAll('.file-double-click-trigger').forEach(el => {
+            el.addEventListener('dblclick', function () {
+                const uniqueId = this.dataset.uniqueId;
+                location.href = '/notes/edit/' + uniqueId;
+            });
+        });
+
+        document.querySelectorAll('.files-in-folder').forEach(fileItem => {
+        fileItem.addEventListener('contextmenu', function(event) {
+            event.preventDefault();
+            const customMenu = document.getElementById('right-menu-options');
+            customMenu.style.top = event.pageY + 'px';
+            customMenu.style.left = event.pageX + 'px';
+            customMenu.style.display = 'block';
+            window.event.returnValue = false;
+            menuVisible = true;
+        });
+
+    });
+
+        document.addEventListener('mousedown', function(event) {
+            const customMenu = document.getElementById('right-menu-options');
+
+            if(menuVisible && event.button === 0 && !customMenu.contains(event.target)) {
+            customMenu.style.display = "none";
+
+            customMenu.removeAttribute('data-target-file-id');
+            menuVisible = false;
+            };
+        });
+
+    </script>
+
+</html>
