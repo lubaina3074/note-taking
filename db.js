@@ -38,12 +38,13 @@ function getBucket() {
 
 async function uploadFile(filepath, userId) {
     if (!bucket) throw new Error("Database not connected yet");
-
+    const folderIdValue = folderId || '';
     const filename = path.basename(filepath); //gets the file name from the file path
     const uniqueId = uuidv4(); //generates a unique ID for the file
     const metadata = { //this is the metadata of the file that is uploaded
         userId: userId,
-        uniqueId: uniqueId
+        uniqueId: uniqueId,
+        folderId : folderIdValue
     };
 
     const uploadStream = bucket.openUploadStream(filename, {metadata: metadata});

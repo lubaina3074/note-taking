@@ -98,6 +98,7 @@ router.post('/upload', upload, async (req, res) => {
         }
 
         const userId = req.session.user._id;
+        const folderId = null;
 
         const existingFile = await bucket.find({
             'metadata.userId': userId,
@@ -403,5 +404,9 @@ router.post('/create-folder', async(req, res) => {
         res.status(500).send("Error creating folder");
     }
 });
+
+router.get('/add-file-to-folder', async (req, res) => {
+
+})
 
 module.exports = router;
