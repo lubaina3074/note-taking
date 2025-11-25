@@ -2,12 +2,11 @@ const express = require("express");
 const path = require('path');
 const multer = require('multer');
 const router = express.Router();
-const { connectDB, getDB, uploadFile, getBucket} = require('./db');
+const { connectDB, getDB, uploadFile, getBucket } = require('./db');
 const fetch = require('node-fetch').default;
 const flash = require('connect-flash');
 const fs = require('fs');
-const { ObjectId, GridFSBucket } = require("mongodb");
-
+const { ObjectId } = require("mongodb");
 
 
 function parseObjectId(id) {
@@ -73,7 +72,7 @@ router.get('/upload', async (req, res) => {
 
         const userID = req.session.user._id;
         const files = await bucket.find({ 'metadata.userId': userID }).toArray();
-        const folders = await db.collection('folders').find({userId:userID}).toArray();
+        const folders = await db.collection('folders').find({ userId: userID }).toArray();
         res.render("upload", { fileArray: files, folderArray: folders });
     } catch (err) {
         console.error(err);
@@ -181,7 +180,7 @@ router.get('/grammar-check/:uniqueId', async (req, res) => {
 
         if (!uniqueId) return res.status(400).send('Invalid unique id');
 
-        const file = await bucket.find({'metadata.uniqueId': uniqueId}).sort({uploadDate: -1}).limit(1).next();
+        const file = await bucket.find({ 'metadata.uniqueId': uniqueId }).sort({ uploadDate: -1 }).limit(1).next();
 
         if (!file) {
             return res.status(404).send("No file found for this note");
@@ -217,7 +216,7 @@ router.get('/download/:uniqueId', async (req, res) => {
         const uniqueId = req.params.uniqueId;
         if (!uniqueId) return res.status(400).send('Invalid unique id');
         const bucket = getBucket();
-        const file = await bucket.find({'metadata.uniqueId':uniqueId}).sort({uploadDate: -1}).limit(1).next();
+        const file = await bucket.find({ 'metadata.uniqueId': uniqueId }).sort({ uploadDate: -1 }).limit(1).next();
         const fileId = file._id;
         const downloadStream = bucket.openDownloadStream(fileId);
 
@@ -242,7 +241,7 @@ router.get('/edit/:uniqueId', async (req, res) => {
     try {
         const bucket = getBucket();
         const uniqueId = req.params.uniqueId;
-        const file = await bucket.find({'metadata.uniqueId': uniqueId}).sort({uploadDate:-1}).limit(1).next();
+        const file = await bucket.find({ 'metadata.uniqueId': uniqueId }).sort({ uploadDate: -1 }).limit(1).next();
         if (!file) return res.status(404).send('File not found');
         const fileId = file._id;
         if (!fileId) return res.status(400).send('Invalid file id');
@@ -257,7 +256,7 @@ router.get('/edit/:uniqueId', async (req, res) => {
         });
 
         downloadStream.on('end', () => {
-            res.render('edit', { content: data, fileId: fileId, file: file, filename: editfilename, uniqueId: uniqueId});
+            res.render('edit', { content: data, fileId: fileId, file: file, filename: editfilename, uniqueId: uniqueId });
         });
 
         downloadStream.on('error', (err) => {
@@ -276,16 +275,16 @@ router.post('/edit/:uniqueId', async (req, res) => {
     try {
         const bucket = getBucket();
         const { content } = req.body;
-        const UniqueId  = req.params.uniqueId;
+        const UniqueId = req.params.uniqueId;
 
         if (!content) return res.status(400).send("No content provided");
 
         const UserId = req.session.user._id;
 
         //Get old file data
-        const oldFile = await bucket.find({ 
-        'metadata.uniqueId': UniqueId, 
-        'metadata.userId': UserId 
+        const oldFile = await bucket.find({
+            'metadata.uniqueId': UniqueId,
+            'metadata.userId': UserId
         }).sort({ uploadDate: -1 }).limit(1).next();
 
         if (!oldFile) return res.status(404).send("Original file not found");
@@ -297,7 +296,7 @@ router.post('/edit/:uniqueId', async (req, res) => {
         const filename = oldFile.filename;
 
         //Upload new content
-        const uploadStream = bucket.openUploadStream( filename,
+        const uploadStream = bucket.openUploadStream(filename,
             {
                 metadata: {
                     userId: userId,
@@ -336,49 +335,36 @@ router.post('/edit/:uniqueId', async (req, res) => {
 });
 
 // Delete note 
-router.post('/delete/:uniqueId', async (req, res) => {
+router.delete('/delete/:uniqueId', async (req, res) => {
     try {
-
         console.log("Delete route called");
-        const fileId = parseObjectId(req.params.fileId);
+        const uniqueId = req.params.uniqueId;
         const bucket = getBucket();
 
-        const fileDoc = await bucket.find({ _id: fileId });
+        const fileDoc = await bucket.find({ 'metadata.uniqueId': uniqueId }).limit(1).next();
 
         if (!fileDoc) {
-            console.warn('File to delete not found:', fileId.toString());
-            return res.status(404).send('File not found');
+            console.warn('File to delete not found');
+            return res.status(404).json({ success: false, message: 'File not found' });
         } else {
-            console.log('File to delete found:', fileId.toString());
+            console.log('File to delete found');
         }
 
-        console.log('Calling bucket.delete for', fileId.toString());
-        await new Promise((resolve, reject) => {
-            bucket.delete(fileId, (err) => {
-                if (err) {
-                    console.error('bucket.delete error:', err);
-                    reject(err);
-                }
-                console.log('Deleted file:', fileId.toString());
+        const fileName = fileDoc.filename;
 
-                resolve('deletion was successful!');
-
-
-            });
-            res.redirect('/notes/upload');
-        });
-
-        console.log('Deleting file succeeded:', fileId.toString());
-        res.json({ success: true });
+        console.log('Calling bucket.delete for', fileName);
+        await bucket.delete(fileDoc._id);
+        console.log('Deleting file succeeded:', fileName);
+        res.json({ success: true, message: 'Deleting file succeeded!'});
 
     } catch (err) {
         console.error('Delete failed:', err);
-        res.status(500).send('Delete failed');
+        res.json({success: false, message: 'Failed to delete file'});
     }
 });
 
 //create folder
-router.post('/create-folder', async(req, res) => {
+router.post('/create-folder', async (req, res) => {
     try {
         const db = getDB();
         const user = req.session.user;
@@ -389,14 +375,14 @@ router.post('/create-folder', async(req, res) => {
         }
 
         const folder = {
-            name: req.body.name,        
-            userId: userID,   
+            name: req.body.name,
+            userId: userID,
             createdAt: new Date()
         }
         const result = await db.collection('folders').insertOne(folder);
 
         res.json({
-         success: true, 
+            success: true,
         });
 
     } catch (err) {
@@ -408,18 +394,17 @@ router.post('/create-folder', async(req, res) => {
 //add files to folder
 router.post('/add-file-to-folder', async (req, res) => {
     const db = getDB();
-    const {uniqueId, folderId} = req.body;
+    const { uniqueId, folderId } = req.body;
 
-    if (!uniqueId || !folderId)
-    {
+    if (!uniqueId || !folderId) {
         return res.status(400).send('uniqueId and folderId are required');
     }
 
     try {
         const result = await db.collection('uploads.files').updateOne(
-                {'metadata.uniqueId': uniqueId},
-                {$set: {'metadata.folderId': folderId}}
-            
+            { 'metadata.uniqueId': uniqueId },
+            { $set: { 'metadata.folderId': folderId } }
+
         )
 
         if (result.matchedCount === 0) {
@@ -437,9 +422,51 @@ router.post('/add-file-to-folder', async (req, res) => {
 router.get('/folder/:id', async (req, res) => {
     const db = getDB();
     const folderId = req.params.id;
-    const folder = await db.collection('folders').findOne({_id: folderId});
-    const fileArray = await db.collection('uploads.files').find({'metadata.folderId': folderId}).toArray();
-    res.render("folder", {fileArray: fileArray});
+    const folder = await db.collection('folders').findOne({ _id: folderId });
+    const fileArray = await db.collection('uploads.files').find({ 'metadata.folderId': folderId }).toArray();
+    res.render("folder", { fileArray: fileArray });
+});
+
+//remove file from folder
+router.post('/remove-file/', async (req, res) => {
+    const db = getDB();
+    try {
+        const uniqueId = req.body.uniqueId;
+
+        const result = await db.collection("uploads.files").updateOne(
+            { 'metadata.uniqueId': uniqueId },
+            { $set: { 'metadata.folderId': null } }
+        );
+        if (result.modifiedCount > 0) {
+            res.json({ success: true, message: 'File removed from folder' });
+        } else {
+            res.json({ success: false, message: 'File not found or already removed' });
+        }
+
+    } catch (err) {
+        console.error(err);
+        res.json({ success: false, error: err.message });
+    }
+});
+
+router.post('/rename-file', async (req, res) => {
+    const db = getDB();
+    const uniqueId = req.body.uniqueId;
+    const filename = req.body.filename;
+    try {
+        const result = await db.collection('uploads.files').updateOne(
+            { 'metadata.uniqueId': uniqueId },
+            { $set: { 'filename': filename } }
+        );
+        if (result.modifiedCount > 0) {
+            res.json({ success: true, message: "File renamed" });
+        } else {
+            res.json({ success: false, message: 'File not found' });
+        }
+    } catch (err) {
+        console.error(err);
+        res.json({success: false, error: err.message});
+    };
 });
 
 module.exports = router;
