@@ -4,45 +4,40 @@
 <%- include('base', { title: "Folder contents" }) %>
 
     <body>
-        <div class="folder-contents">
-            <ul class="files-list">
-                <% if (fileArray && fileArray.length> 0) { %>
-                    <% fileArray.forEach(function (file) { %>
-                        <% const fileIdString=file._id.toString(); %>
-                            <% const uniqueId=file.metadata.uniqueId; %>
-                                <li class="files-in-folder" data-file-id="<%= file._id %>" data-unique-id="<%= file.metadata.uniqueId %>">
-                                    <div class="file-item" id="file-double-click-trigger">
-                                        <a id="file-link-<%=fileIdString%>" href="#" class="file-double-click-trigger"
-                                        data-unique-id="<%=uniqueId%>">
-                                        <img src="/images/file.png" alt="file" class="file-img" />
-                                        </a>
-                                        <span class="file-name"><%=file.filename%></span>
-                                    </div>
-                                </li>
-                                <% }) %>
-                                    <% } else { %>
-                                        <li style="margin-left: 240px; margin-top: 100px; font-size: 20px"> No files
-                                            added in
-                                            this folder </li>
-                                        <% } %>
+        <%- include ('partials/rightMenuFolder') %>
+            <div class="folder-contents">
+                <ul class="files-list">
+                    <% if (fileArray && fileArray.length> 0) { %>
+                        <% fileArray.forEach(function (file) { %>
+                            <% const fileIdString=file._id.toString(); %>
+                                <% const uniqueId=file.metadata.uniqueId; %>
+                                    <li class="files-in-folder" data-file-id="<%= file._id %>"
+                                        data-unique-id="<%= file.metadata.uniqueId %>">
+                                        <div class="file-item" id="file-double-click-trigger">
+                                            <a id="file-link-<%=fileIdString%>" href="#"
+                                                class="file-double-click-trigger" data-unique-id="<%=uniqueId%>">
+                                                <img src="/images/file.png" alt="file" class="file-img" />
+                                            </a>
+                                            <span class="file-name">
+                                                <%=file.filename%>
+                                            </span>
+                                        </div>
+                                    </li>
+                                    <% }) %>
+                                        <% } else { %>
+                                            <li style="margin-left: 240px; margin-top: 100px; font-size: 20px"> No files
+                                                added in
+                                                this folder </li>
+                                            <% } %>
+                                                
 
-                                            <div id="right-menu-options" style="display: none">
-                                                <ul>
-                                                    <li> <a id="rename-file"> Rename file </a></li>
-                                                    <li> <a
-                                                            id="remove-file-from-folder"> Remove From
-                                                            folder </a> </li>
-                                                    <li> <a id="delete-file"> Delete file </a></li>
-                                                </ul>
-                                            </div>
-            </ul>
-        </div>
+            </div>
+            <button type="button" style="margin-top: 400px; display: flex; justify-content:center" id="backBtn" onclick= "window.history.back()" >Back to Uploads</button>
     </body>
 
-    <script>
-        let menuVisible = false;
-        const customMenu = document.getElementById('right-menu-options');
+    <script src="/js/rightMenuFolder.js"></script>
 
+    <script>
         document.querySelectorAll('.file-double-click-trigger').forEach(el => {
             el.addEventListener('dblclick', function () {
                 const uniqueId = this.dataset.uniqueId;
@@ -50,105 +45,6 @@
             });
         });
 
-        document.querySelectorAll('.files-in-folder').forEach(fileItem => {
-            fileItem.addEventListener('contextmenu', function (event) {
-                event.preventDefault();
-
-                customMenu.setAttribute('data-target-unique-id', fileItem.dataset.uniqueId);
-                customMenu.setAttribute('data-target-file-id', fileItem.dataset.fileId);
-
-                customMenu.style.top = event.pageY + 'px';
-                customMenu.style.left = event.pageX + 'px';
-                customMenu.style.display = 'block';
-                menuVisible = true;
-
-            });
-
-        });
-
-        document.addEventListener('mousedown', function (event) {
-
-            if (menuVisible && event.button === 0 && !customMenu.contains(event.target)) {
-                customMenu.style.display = "none";
-
-                customMenu.removeAttribute('data-target-unique-id');
-                menuVisible = false;
-            };
-        });
-
-        document.getElementById('rename-file').addEventListener('click', async function() {
-            const currentUniqueId = customMenu.getAttribute('data-target-unique-id');
-            if (!currentUniqueId) return;
-            const filename = prompt('Enter the new name of the file');
-            if (!filename) return;
-            customMenu.style.display = "none";
-            const response = await fetch ('/notes/rename-file', {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ uniqueId: currentUniqueId, filename: filename}),
-            })
-            const data = await response.json();
-            if (data.success) {
-                
-                alert("File renamed successfully!");
-
-                //update UI
-                const fileElement = document.querySelector(`[data-unique-id="${currentUniqueId}"]`)
-                if(fileElement)
-                {   
-                    const filenameSpan = document.querySelector('.file-name');
-                    if(filenameSpan) filenameSpan.textContent = filename;
-                }
-                
-            } else {
-                alert("Failed to rename file");
-            }
-        })
-
-        document.getElementById('remove-file-from-folder').addEventListener('click', async function () {
-            const currentUniqueId = customMenu.getAttribute('data-target-unique-id');
-            if (!currentUniqueId) return;
-
-            const response = await fetch("/notes/remove-file/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ uniqueId: currentUniqueId }),
-            });
-
-            const data = await response.json();
-            if (data.success) {
-                alert("File removed from folder");
-                // Remove the file from UI
-                document.querySelector(`[data-unique-id="${currentUniqueId}"]`).remove();
-                customMenu.style.display = "none";
-            } else {
-                alert("Failed to remove file from folder");
-            }
-        });
-
-        document.getElementById('delete-file').addEventListener('click', async function () {
-            const currentUniqueId = customMenu.getAttribute('data-target-unique-id');
-            if (!currentUniqueId) return;
-
-            const sure = confirm("Are you sure you want to delete the file?");
-            if(!sure) return;
-            customMenu.style.display = "none";
-
-            const response = await fetch(`/notes/delete/${currentUniqueId}`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({}),
-            })
-
-            const data = await response.json();
-            if (data.success) {
-                alert('File deleted!');
-                const fileElement = document.querySelector('.file-item');
-                fileElement.remove();
-            } else {
-                alert('Failed to delete file');
-            };
-        });
     </script>
 
 </html>

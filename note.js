@@ -110,9 +110,17 @@ router.post('/upload', upload, async (req, res) => {
         }
 
         const fileId = await uploadFile(filepath, userId, folderId);
-        const allFiles = await bucket.find({ userId: userId }).toArray();
-        res.redirect('/notes/upload');
+        const fileDoc = await bucket.find({ _id: fileId }).limit(1).next();
+        const newFileUniqueId = fileDoc.metadata.uniqueId;
         console.log("File uploaded with id:", fileId.toString());
+        res.json({
+            success: true,
+            filename: req.file.originalname,
+            uniqueId: newFileUniqueId,
+            fileId: fileId.toString(),
+            message: 'Upload succeeded!'
+        });
+
 
     } catch (err) {
         console.error(err);
@@ -355,11 +363,11 @@ router.delete('/delete/:uniqueId', async (req, res) => {
         console.log('Calling bucket.delete for', fileName);
         await bucket.delete(fileDoc._id);
         console.log('Deleting file succeeded:', fileName);
-        res.json({ success: true, message: 'Deleting file succeeded!'});
+        res.json({ success: true, message: 'Deleting file succeeded!' });
 
     } catch (err) {
         console.error('Delete failed:', err);
-        res.json({success: false, message: 'Failed to delete file'});
+        res.json({ success: false, message: 'Failed to delete file' });
     }
 });
 
@@ -383,6 +391,7 @@ router.post('/create-folder', async (req, res) => {
 
         res.json({
             success: true,
+            folderId: result._id
         });
 
     } catch (err) {
@@ -413,7 +422,7 @@ router.post('/add-file-to-folder', async (req, res) => {
         res.send({ success: true, message: 'File added to folder' });
     } catch (err) {
         console.error(err);
-        res.status(500).send('Database update failed');
+        res.status(500).send('File could not be added to folder');
     }
 
 });
@@ -465,7 +474,7 @@ router.post('/rename-file', async (req, res) => {
         }
     } catch (err) {
         console.error(err);
-        res.json({success: false, error: err.message});
+        res.json({ success: false, error: err.message });
     };
 });
 

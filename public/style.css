@@ -722,26 +722,39 @@ textarea:focus {
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-#right-menu-options {
+#right-menu-folder-options {
   position: absolute;
-  background-color: pink;
+  background-color: #2E5090;
   border: 1px solid #ccc;
-  padding: 4px;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
   z-index: 1000;
-  margin-top: 10px;
   color: white;
 }
 
-#right-menu-options li {
-  padding: 5px 8px; 
+#right-menu-folder-options li {
+  padding: 5px 5px; 
   cursor: pointer;
+  list-style-type: none;
+  margin-right: 20px;
+  font-size: 15px;
 }
 
-#right-menu-options :hover{
-  display: block;
+#right-menu-upload-options {
+  position: absolute;
+  background-color: #2E5090;
+  border: 1px solid #ccc;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  color: white;
 }
 
+#right-menu-upload-options li {
+  padding: 5px 5px; 
+  cursor: pointer;
+  list-style-type: none;
+  margin-right: 20px;
+  font-size: 15px;
+}
 
 @keyframes slide {
   0% {

@@ -7,6 +7,7 @@ const port = 3000;
 const { connectDB, getDB } = require('./db');
 const session = require('express-session');
 const noteRouter = require('./note');
+const bcrypt = require('bcrypt');
 
 
 //users and db is global
@@ -65,14 +66,19 @@ app.get('/sign-in', (req, res) => {
     res.render("sign_in");
 });
 
+
+const saltRounds = 10;
+
 //sign up
 app.post('/api/users', async (req, res) => {
 
     const { email, name, psw, pswRepeat } = req.body;
-
-    const user = {email, name, password: psw};
     if (psw != pswRepeat) return res.send("Passwords do not match!");
-    console.log('New user:', email, name, psw);
+    
+    const plainPassword = psw;
+    const salt = await bcrypt.genSalt(saltRounds);
+    const hashedPassword = await bcrypt.hash(plainPassword, salt)
+    const user = {email, name, password: hashedPassword};
 
     try {
         await users.insertOne(user);
@@ -95,8 +101,14 @@ app.post('/api/login', async (req, res) => {
         const user = await userCollection.findOne({ "email": email })
 
        
-        if (!user || user.password !== psw) {
-            return res.status(401).json({ message: "Invalid credentials" });
+        if (!user) {
+            return res.status(401).json({ message: "Invalid Email." });
+        }
+
+        const passwordCompare = await bcrypt.compare(psw, user.password);
+        if(!passwordCompare)
+        {
+            return res.status(401).json({message: "Invalid email or password"});
         }
 
         req.session.user =

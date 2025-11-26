@@ -4,67 +4,71 @@
 <%- include('base', { title: 'All your notes' , }); %>
 
   <body>
-    <h2 style="color: white">Upload in md format!</h2>
+    <%- include ('partials/rightMenuUpload') %>
+      <h2 style="color: white">Upload in md format!</h2>
 
-    <form action="/notes/upload" enctype="multipart/form-data" method="post">
-      <div class="form-group">
-        <input type="file" class="form-control-file" name="myFile" />
-        <input type="submit" value="Submit" class="btn btn-default" />
-      </div>
-    </form>
+      <form id="upload-form" enctype="multipart/form-data" method="post">
+        <div class="form-group">
+          <input type="file" class="form-control-file" name="myFile" />
+          <input type="submit" value="Submit" class="btn btn-default" />
+        </div>
+      </form>
 
-    <button type="button" id="folderBtn">Create new Folder</button>
+      <div id="upload-message" style="color: red; margin-top: 10px"></div>
 
-    <button style="display: none" id="Addbtn">Add to Folder</button>
+      <button type="button" id="folderBtn">Create new Folder</button>
 
+      <button style="display: none" id="Addbtn">Add to Folder</button>
 
-    <div class="file-list">
-
-      <!-- Folders Section -->
-      <ul class="folder-list">
-        <% if (folderArray && folderArray.length> 0) { %>
-          <% folderArray.forEach(function(folder) { %>
-            <li class="folder-item" data-folder-id="<%= folder._id %>">
-              <img src="/images/folder.png" class="folder-img" id="folderImg" />
-                <%= folder.name %>
-            </li>
-            <% }) %>
-              <% } else { %>
-
-                <% } %>
-      </ul>
-
-      <!-- Files section -->
-
-        <% if (fileArray && fileArray.length> 0) { %>
-          <% fileArray.forEach(function(file) { %>
-            <% if (file && !file.metadata.folderId) { %>
-              <% const fileIdString=file._id.toString(); %>
-                <% const uniqueId=file.metadata.uniqueId; %>
-                  <li id="file-<%= file._id %>" class="file-li">
-                    <div class="file-item" id="file-<%= file._id %>" draggable="true"
-                      ondragstart="dragstartHandler(event)">
-                     
-                      <a id="file-link-<%= fileIdString %>" href="#" class="file-double-click-trigger"
-                        data-unique-id="<%= uniqueId %>">
-                        <img src="/images/file.png" alt="file" class="file-img" />
-                      </a>
-                      <%= file.filename %>
-                    </div>
-                  </li>
-
+      <div class="file-list">
+        <!-- Folders Section -->
+        <ul class="folder-list">
+          <% if (folderArray && folderArray.length> 0) { %> <% folderArray.forEach(function(folder) { %>
+              <% if(folder) { %>
+                <% const folderId=folder._id.toString(); %>
                   <% } %>
+                    <li class="folder-item" data-folder-id="<%= folder._id %>">
+                      <img src="/images/folder.png" class="folder-img" id="folderImg" />
+                      <%= folder.name %>
+                    </li>
                     <% }) %>
-                      <% } %>
-      </ul>
+                      <% } else { %>
+                        <% } %>
+        </ul>
+
+        <!-- Files section -->
+        <ul class="file-list-ul" id="file-list">
+          <% if (fileArray && fileArray.length> 0) { %> <% fileArray.forEach(function(file) { %>
+              <% if (file && !file.metadata.folderId) { %>
+                <% const fileIdString=file._id.toString(); %>
+                  <% const uniqueId=file.metadata.uniqueId; %>
+
+                    <li id="file-<%= file._id %>" class="file-li" data-file-id="<%= file._id %>"
+                      data-unique-id="<%= file.metadata.uniqueId %>">
+                      <div id="file-item" class="file-item" draggable="true" ondragstart="dragstartHandler(event)">
+                        <a href="#" class="file-double-click-trigger" data-unique-id="<%= uniqueId %>">
+                          <img src="/images/file.png" alt="file" class="file-img" />
+                        </a>
+                        <span class="file-name">
+                          <%= file.filename %>
+                        </span>
+                      </div>
+                    </li>
+                    <% } %>
+                      <% }) %>
+                        <% } %>
+        </ul>
+      </div>
   </body>
 
-  <script>
+  <script src="/js/rightMenuUpload.js"></script>
 
+  <script>
     function dragstartHandler(ev) {
       const fileItem = ev.currentTarget;
-      const uniqueId = fileItem.querySelector('.file-double-click-trigger').dataset.uniqueId;
-      ev.dataTransfer.setData('text/plain', uniqueId);
+      const uniqueId = fileItem.querySelector(".file-double-click-trigger")
+        .dataset.uniqueId;
+      ev.dataTransfer.setData("text/plain", uniqueId);
     }
 
     function dragoverHandler(ev) {
@@ -84,53 +88,103 @@
       const data = await response.json();
       if (data.success) {
         alert("Folder created!");
+
+        //try later to update UI automatically
         window.location.reload();
       }
     };
 
-    document.querySelectorAll('.file-double-click-trigger').forEach(el => {
-      el.addEventListener('dblclick', function () {
+    document.querySelectorAll(".file-double-click-trigger").forEach((el) => {
+      el.addEventListener("dblclick", function () {
         const uniqueId = this.dataset.uniqueId;
-        location.href = '/notes/edit/' + uniqueId;
-      })
-    })
+        location.href = "/notes/edit/" + uniqueId;
+      });
+    });
 
-    document.querySelectorAll(".folder-item").forEach(el => {
-      el.addEventListener('dblclick', function () {
+    document.querySelectorAll(".folder-item").forEach((el) => {
+      el.addEventListener("dblclick", function () {
         const folderId = this.dataset.folderId;
-        location.href = '/notes/folder/' + folderId;
-      })
-    })
+        location.href = "/notes/folder/" + folderId;
+      });
+    });
 
-    document.querySelectorAll('.folder-item').forEach(folder => {
-      folder.addEventListener('dragover', e => e.preventDefault());
-      folder.addEventListener('drop', async e => {
+    document.querySelectorAll(".folder-item").forEach((folder) => {
+      folder.addEventListener("dragover", (e) => e.preventDefault());
+      folder.addEventListener("drop", async (e) => {
         e.preventDefault();
-        const fileUniqueId = e.dataTransfer.getData('text/plain');
+        const fileUniqueId = e.dataTransfer.getData("text/plain");
         const folderId = folder.dataset.folderId;
-        const response = await fetch('/notes/add-file-to-folder', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uniqueId: fileUniqueId, folderId })
+        const response = await fetch("/notes/add-file-to-folder", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ uniqueId: fileUniqueId, folderId: folderId }),
         });
 
         const data = await response.json();
         if (data.success) {
-          alert('File added to folder!');
-          const fileElement = document.querySelector(`[data-unique-id="${fileUniqueId}"]`
-          ).closest('.file-item');
-          if (fileElement)
-          {
-            fileElement.remove();
+          const fileElement = document.querySelector(
+            `[data-unique-id="${fileUniqueId}"]`
+          );
+          if (fileElement) {
+            fileElement.closest("li").remove(); // remove the whole list item
+            alert("File added to folder");
           } else {
-            alert('Failed to add file to folder.');
+            alert("Failed to remove file element from UI.");
           }
+        } else {
+          alert("Failed to add file to folder on server.");
         }
-      })
-    })
+      });
+    });
 
+    //using AJAX to show upload messages from the server
+    const form = document.getElementById("upload-form");
+    const messageDiv = document.getElementById("upload-message");
 
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
 
+      try {
+        const response = await fetch("/notes/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const text = await response.text();
+          messageDiv.textContent = text;
+          return;
+        }
+        const data = await response.json();
+        
+        messageDiv.style.color = "green";
+        messageDiv.textContent = "File uploaded succesfully";
+
+        //update UI to show file without reloading
+        const fileList = document.getElementById("file-list");
+
+        const li = document.createElement("li");
+        li.id = `file-${data.fileId}`;
+        li.className = "file-li";
+        li.setAttribute("data-file-id", data.fileId);
+        li.setAttribute("data-unique-id", data.uniqueId);
+
+        li.innerHTML = `
+          <div class="file-item" draggable="true" ondragstart="dragstartHandler(event)">
+            <a href="#" class="file-double-click-trigger" data-unique-id="${data.uniqueId}">
+              <img src="/images/file.png" alt="file" class="file-img" />
+            </a>
+            <span class="file-name">${data.filename}</span>
+          </div>
+        `;
+        fileList.appendChild(li);
+
+      } catch (err) {
+        console.error(err);
+        messageDiv.textContent = "Upload failed. Try again.";
+      }
+    });
   </script>
 
 </html>
